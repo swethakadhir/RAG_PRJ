@@ -1,12 +1,27 @@
 streamlit
 python-dotenv
+
+# LangChain core
 langchain
 langchain-community
-faiss-cpu
+langchain-core
+langchain-text-splitters
+
+# Google Gemini integration
+langchain-google-genai
 google-generativeai
+
+# Vector database
+faiss-cpu
+
+# PDF processing
 pypdf
 PyPDF2
-tiktoken
+
+# NLP / embeddings
+sentence-transformers
+
+# Utilities
 numpy
 pandas
-sentence-transformers
+tiktoken
