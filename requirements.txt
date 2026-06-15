@@ -1,4 +1,4 @@
-openai
+groq
 PyPDF2
 chromadb
 langchain-community
