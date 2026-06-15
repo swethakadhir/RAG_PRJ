@@ -1,24 +1,26 @@
 import os
 from PyPDF2 import PdfReader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import Chroma
 from langchain_groq import ChatGroq
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.chains import RetrievalQA
 
-
+# ---------------------------
+# 1. PDF TEXT EXTRACTION
+# ---------------------------
 def extract_text_from_pdf(pdf_file):
     reader = PdfReader(pdf_file)
     text = ""
-
     for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text
-
+        text += page.extract_text() or ""
     return text
 
 
-def split_text_into_chunks(text):
+# ---------------------------
+# 2. TEXT CHUNKING
+# ---------------------------
+def split_text(text):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200
@@ -26,61 +28,38 @@ def split_text_into_chunks(text):
     return splitter.split_text(text)
 
 
-def create_vector_store(chunks):
-    embeddings = HuggingFaceEmbeddings(
-        model_name="all-MiniLM-L6-v2"
-    )
+# ---------------------------
+# 3. VECTOR DB CREATION
+# ---------------------------
+def create_vectorstore(chunks):
+    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-    vector_store = Chroma.from_texts(
+    vectorstore = Chroma.from_texts(
         texts=chunks,
         embedding=embeddings
     )
+    return vectorstore
 
-    return vector_store
 
-import os
-from google import genai
-
-import os
-from openai import OpenAI
-
-import os
-from groq import Groq
-
-def get_answer(vector_store, question):
-    api_key = os.getenv("GROQ_API_KEY")
-
-    if not api_key:
-        return "ERROR: GROQ_API_KEY not found in environment."
-
-    client = Groq(api_key=api_key)
-
-    docs = vector_store.similarity_search(question, k=4)
-
-    context = "\n\n".join(
-        doc.page_content for doc in docs if doc.page_content
+# ---------------------------
+# 4. GROQ LLM SETUP
+# ---------------------------
+def get_llm():
+    return ChatGroq(
+        groq_api_key=os.environ["GROQ_API_KEY"],
+        model_name="llama3-8b-8192"
     )
 
-    prompt = f"""
-You are a helpful assistant.
 
-Answer ONLY using the context below.
+# ---------------------------
+# 5. QA CHAIN (RAG PIPELINE)
+# ---------------------------
+def get_qa_chain(vectorstore):
+    llm = get_llm()
 
-Context:
-{context}
-
-Question:
-{question}
-
-If not found, say:
-"I could not find this in the document."
-"""
-
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=vectorstore.as_retriever()
     )
 
-    return response.choices[0].message.content
+    return qa_chain

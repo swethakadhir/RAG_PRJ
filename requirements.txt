@@ -1,11 +1,7 @@
-langchain-groq
+streamlit
 langchain
+langchain-groq
 chromadb
-streamlit
 pypdf
-PyPDF2
-chromadb
-langchain-community
-langchain-text-splitters
-streamlit
 sentence-transformers
+tiktoken
