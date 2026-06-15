@@ -1,12 +1,12 @@
 import os
-from dotenv import load_dotenv
+
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-load_dotenv()
+
 
 def extract_text_from_pdf(pdf_file):
     """Read all text from a PDF file"""
@@ -51,7 +51,8 @@ def get_answer(vector_store, question):
     """Find relevant chunks and ask Gemini to answer"""
 
     llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro",
+    model="gemini-1.5-flash"
+    google_api_key=os.getenv("GOOGLE_API_KEY")
     temperature=0.3
     )
 
