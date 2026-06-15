@@ -51,8 +51,8 @@ def get_answer(vector_store, question):
     """Find relevant chunks and ask Gemini to answer"""
 
     llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash"
-    google_api_key=os.getenv("GOOGLE_API_KEY")
+    model="gemini-1.5-flash",
+    google_api_key=os.getenv("GOOGLE_API_KEY"),
     temperature=0.3
     )
 
