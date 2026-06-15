@@ -41,15 +41,18 @@ def create_vector_store(chunks):
 import os
 from google import genai
 
+import os
+from openai import OpenAI
+
 def get_answer(vector_store, question):
-    api_key = os.getenv("GOOGLE_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
 
     if not api_key:
-        return "ERROR: GOOGLE_API_KEY not found in environment."
+        return "ERROR: OPENAI_API_KEY not found in Streamlit secrets."
 
-    client = genai.Client(api_key=api_key)
+    client = OpenAI(api_key=api_key)
 
-    # Retrieve documents from vector DB
+    # Retrieve relevant documents from vector DB
     docs = vector_store.similarity_search(question, k=4)
 
     context = "\n\n".join(
@@ -59,7 +62,7 @@ def get_answer(vector_store, question):
     prompt = f"""
 You are a helpful assistant.
 
-Use ONLY the context below to answer.
+Answer ONLY using the context below.
 
 Context:
 {context}
@@ -67,13 +70,15 @@ Context:
 Question:
 {question}
 
-If answer is not in context, say:
+If the answer is not in the context, say:
 "I could not find this in the document."
 """
 
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
     )
 
-    return response.text
+    return response.choices[0].message.content
