@@ -1,4 +1,8 @@
-groq
+langchain-groq
+langchain
+chromadb
+streamlit
+pypdf
 PyPDF2
 chromadb
 langchain-community
