@@ -1,11 +1,9 @@
 import streamlit as st
 
-from rag_engine import (
-    extract_text_from_pdf,
-    split_text_into_chunks,
-    create_vector_store,
-    get_answer
-)
+from rag_engine import extract_text_from_pdf
+from rag_engine import split_text_into_chunks
+from rag_engine import create_vector_store
+from rag_engine import get_answer
 
 # Configure the page
 st.set_page_config(
