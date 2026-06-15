@@ -40,11 +40,43 @@ def create_vector_store(chunks):
 
 def get_answer(vector_store, question):
     import os
+    from langchain_google_genai import ChatGoogleGenerativeAI
 
     api_key = os.getenv("GOOGLE_API_KEY")
 
-    return f"""
-DEBUG INFO:
-API KEY LOADED = {bool(api_key)}
-KEY START = {str(api_key)[:10] if api_key else None}
+    if not api_key:
+        return "ERROR: GOOGLE_API_KEY not found in Streamlit secrets."
+
+    # Stable Gemini model for LangChain
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-1.0-pro",
+        temperature=0.3,
+        google_api_key=api_key
+    )
+
+    # Retrieve relevant documents
+    docs = vector_store.similarity_search(question, k=4)
+
+    context = "\n\n".join(
+        doc.page_content for doc in docs if doc.page_content
+    )
+
+    prompt = f"""
+Answer ONLY using the context below.
+
+Context:
+{context}
+
+Question:
+{question}
+
+If the answer is not in the context, say:
+"I could not find that information in the document."
 """
+
+    try:
+        response = llm.invoke(prompt)
+        return response.content
+
+    except Exception as e:
+        return f"Gemini API Error: {str(e)}"
