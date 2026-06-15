@@ -38,23 +38,18 @@ def create_vector_store(chunks):
 
     return vector_store
 
-def get_answer(vector_store, question):
-    import os
-    from langchain_google_genai import ChatGoogleGenerativeAI
+import os
+from google import genai
 
+def get_answer(vector_store, question):
     api_key = os.getenv("GOOGLE_API_KEY")
 
     if not api_key:
-        return "ERROR: GOOGLE_API_KEY not found in Streamlit secrets."
+        return "ERROR: GOOGLE_API_KEY not found in environment."
 
-    # Stable Gemini model for LangChain
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
-        temperature=0.3,
-        google_api_key=api_key
-    )
+    client = genai.Client(api_key=api_key)
 
-    # Retrieve relevant documents
+    # Retrieve documents from vector DB
     docs = vector_store.similarity_search(question, k=4)
 
     context = "\n\n".join(
@@ -62,7 +57,9 @@ def get_answer(vector_store, question):
     )
 
     prompt = f"""
-Answer ONLY using the context below.
+You are a helpful assistant.
+
+Use ONLY the context below to answer.
 
 Context:
 {context}
@@ -70,13 +67,13 @@ Context:
 Question:
 {question}
 
-If the answer is not in the context, say:
-"I could not find that information in the document."
+If answer is not in context, say:
+"I could not find this in the document."
 """
 
-    try:
-        response = llm.invoke(prompt)
-        return response.content
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt
+    )
 
-    except Exception as e:
-        return f"Gemini API Error: {str(e)}"
+    return response.text
