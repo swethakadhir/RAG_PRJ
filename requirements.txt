@@ -1,0 +1,9 @@
+streamlit
+python-dotenv
+langchain
+faiss-cpu
+google-generativeai
+pypdf
+tiktoken
+numpy
+pandas
