@@ -2,7 +2,7 @@ import os
 from PyPDF2 import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 
@@ -44,15 +44,17 @@ from google import genai
 import os
 from openai import OpenAI
 
+import os
+from groq import Groq
+
 def get_answer(vector_store, question):
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GROQ_API_KEY")
 
     if not api_key:
-        return "ERROR: OPENAI_API_KEY not found in Streamlit secrets."
+        return "ERROR: GROQ_API_KEY not found in environment."
 
-    client = OpenAI(api_key=api_key)
+    client = Groq(api_key=api_key)
 
-    # Retrieve relevant documents from vector DB
     docs = vector_store.similarity_search(question, k=4)
 
     context = "\n\n".join(
@@ -70,12 +72,12 @@ Context:
 Question:
 {question}
 
-If the answer is not in the context, say:
+If not found, say:
 "I could not find this in the document."
 """
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="llama-3.3-70b-versatile",
         messages=[
             {"role": "user", "content": prompt}
         ]
