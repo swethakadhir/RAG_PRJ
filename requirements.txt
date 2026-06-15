@@ -3,5 +3,6 @@ langchain
 langchain-groq
 chromadb
 pypdf
+PyPDF2
 sentence-transformers
 tiktoken
