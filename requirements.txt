@@ -1,8 +1,8 @@
 streamlit
 langchain
+langchain-community
 langchain-groq
 chromadb
 pypdf
-PyPDF2
 sentence-transformers
 tiktoken
