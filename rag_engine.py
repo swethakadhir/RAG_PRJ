@@ -49,7 +49,7 @@ def get_answer(vector_store, question):
 
     # Stable Gemini model for LangChain
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.0-pro",
+        model="gemini-1.5-flash",
         temperature=0.3,
         google_api_key=api_key
     )
