@@ -1,9 +1,12 @@
 streamlit
 python-dotenv
 langchain
+langchain-community
 faiss-cpu
 google-generativeai
 pypdf
+PyPDF2
 tiktoken
 numpy
 pandas
+sentence-transformers
