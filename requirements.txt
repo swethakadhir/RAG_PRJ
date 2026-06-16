@@ -3,7 +3,7 @@ langchain
 langchain-community
 langchain-groq
 langchain-text-splitters
-chromadb
 pypdf
 sentence-transformers
 tiktoken
+faiss-cpu

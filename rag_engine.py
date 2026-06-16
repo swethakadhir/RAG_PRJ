@@ -2,7 +2,7 @@ import os
 
 from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
 
@@ -47,11 +47,10 @@ def create_vector_store(chunks):
         model_name="all-MiniLM-L6-v2"
     )
 
-    vector_store = Chroma.from_texts(
-        texts=chunks,
-        embedding=embeddings
+    vector_store = FAISS.from_texts(
+    texts=chunks,
+    embedding=embeddings
     )
-
     return vector_store
 
 
