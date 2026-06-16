@@ -4,7 +4,6 @@ from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain.chains import RetrievalQA
 from langchain_groq import ChatGroq
 
 
@@ -59,18 +58,31 @@ def create_vector_store(chunks):
 # -----------------------------------
 # Answer question
 # -----------------------------------
+from langchain_groq import ChatGroq
+
 def get_answer(vector_store, question):
+
+    docs = vector_store.similarity_search(question, k=3)
+
+    context = "\n\n".join([doc.page_content for doc in docs])
+
+    prompt = f"""
+Answer the question using only the context below.
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:
+"""
 
     llm = ChatGroq(
         groq_api_key=os.environ["GROQ_API_KEY"],
         model_name="llama3-8b-8192"
     )
 
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=vector_store.as_retriever()
-    )
+    response = llm.invoke(prompt)
 
-    response = qa_chain.run(question)
-
-    return response
+    return response.content
