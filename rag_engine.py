@@ -1,65 +1,76 @@
 import os
-from PyPDF2 import PdfReader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import Chroma
-from langchain_groq import ChatGroq
-from langchain.chains import RetrievalQA
 
-# ---------------------------
-# 1. PDF TEXT EXTRACTION
-# ---------------------------
+from pypdf import PdfReader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.chains import RetrievalQA
+from langchain_groq import ChatGroq
+
+
+# -----------------------------------
+# Extract text from PDF
+# -----------------------------------
 def extract_text_from_pdf(pdf_file):
     reader = PdfReader(pdf_file)
+
     text = ""
+
     for page in reader.pages:
-        text += page.extract_text() or ""
+        page_text = page.extract_text()
+
+        if page_text:
+            text += page_text
+
     return text
 
 
-# ---------------------------
-# 2. TEXT CHUNKING
-# ---------------------------
-def split_text(text):
+# -----------------------------------
+# Split text into chunks
+# -----------------------------------
+def split_text_into_chunks(text):
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200
     )
-    return splitter.split_text(text)
+
+    chunks = splitter.split_text(text)
+
+    return chunks
 
 
-# ---------------------------
-# 3. VECTOR DB CREATION
-# ---------------------------
-def create_vectorstore(chunks):
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# -----------------------------------
+# Create vector database
+# -----------------------------------
+def create_vector_store(chunks):
 
-    vectorstore = Chroma.from_texts(
+    embeddings = HuggingFaceEmbeddings(
+        model_name="all-MiniLM-L6-v2"
+    )
+
+    vector_store = Chroma.from_texts(
         texts=chunks,
         embedding=embeddings
     )
-    return vectorstore
+
+    return vector_store
 
 
-# ---------------------------
-# 4. GROQ LLM SETUP
-# ---------------------------
-def get_llm():
-    return ChatGroq(
+# -----------------------------------
+# Answer question
+# -----------------------------------
+def get_answer(vector_store, question):
+
+    llm = ChatGroq(
         groq_api_key=os.environ["GROQ_API_KEY"],
         model_name="llama3-8b-8192"
     )
 
-
-# ---------------------------
-# 5. QA CHAIN (RAG PIPELINE)
-# ---------------------------
-def get_qa_chain(vectorstore):
-    llm = get_llm()
-
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
-        retriever=vectorstore.as_retriever()
+        retriever=vector_store.as_retriever()
     )
 
-    return qa_chain
+    response = qa_chain.run(question)
+
+    return response
