@@ -59,14 +59,19 @@ def create_vector_store(chunks):
 # -----------------------------------
 from langchain_groq import ChatGroq
 
+import os
+from langchain_groq import ChatGroq
+
 def get_answer(vector_store, question):
 
-    docs = vector_store.similarity_search(question, k=3)
+    docs = vector_store.similarity_search(question, k=2)
 
-    context = "\n\n".join([doc.page_content for doc in docs])
+    context = "\n\n".join(
+        [doc.page_content[:1000] for doc in docs]
+    )
 
     prompt = f"""
-Answer the question using only the context below.
+Use the following context to answer the question.
 
 Context:
 {context}
@@ -79,9 +84,12 @@ Answer:
 
     llm = ChatGroq(
         groq_api_key=os.environ["GROQ_API_KEY"],
-        model_name="llama3-8b-8192"
+        model_name="llama-3.1-8b-instant"
     )
 
-    response = llm.invoke(prompt)
+    try:
+        response = llm.invoke(prompt)
+        return response.content
 
-    return response.content
+    except Exception as e:
+        return f"Groq Error: {str(e)}"
